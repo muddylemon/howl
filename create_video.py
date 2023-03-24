@@ -10,13 +10,12 @@ from moviepy.video.VideoClip import ImageClip, TextClip
 from moviepy.video.compositing.concatenate import concatenate_videoclips
 from moviepy.video.fx.resize import resize
 
-
-mp3_file = 'rage.mp4'
-file_path = 'rage.txt'
+# make these arguments
+images_folder = '/home/lck/stable-diffusion-webui/outputs/txt2img-images/delicate and detailed ink drawing'
+output_file = 'videos/rage/mooo.mp4'
+audio_file = 'rage.mp4'
+lines_file = 'rage.txt'
 fps = 12  # Set the fps for the final video
-transition_duration = 1  # Set the duration of the transition in seconds
-images_folder = '/home/lck/stable-diffusion-webui/outputs/txt2img-images/first imagery inspired by the line'
-output_file = 'videos/rage/flatdark.mp4'
 
 def write_text_on_clip(clip, text, position, font_scale=1, font_thickness=2, font_color=(255, 255, 255)):
     for frame in clip.iter_frames():
@@ -32,45 +31,7 @@ def crossfade_transition(clips, transition_duration):
     faded_clips.append(clips[-1].set_start(clips[-1].start))
     return concatenate_videoclips(faded_clips)
 
-
-def slide_transition(clips, transition_duration, direction='left'):
-    slide_clips = [clips[0]]
-    
-    for i in range(len(clips) - 1):
-        clip1 = clips[i]
-        clip2 = clips[i+1]
-        w, h = clips[0].size
-
-        if direction == 'left':
-            clip1 = clip1.set_position(lambda t: (int(-t * w / transition_duration), 0))
-            clip2 = clip2.set_position(lambda t: (int(w - (t * w / transition_duration)), 0))
-        elif direction == 'right':
-            clip1 = clip1.set_position(lambda t: (int(t * w / transition_duration), 0))
-            clip2 = clip2.set_position(lambda t: (int((t * w / transition_duration) - w), 0))
-        elif direction == 'up':
-            clip1 = clip1.set_position(lambda t: (0, int(-t * h / transition_duration)))
-            clip2 = clip2.set_position(lambda t: (0, int(h - (t * h / transition_duration))))
-        elif direction == 'down':
-            clip1 = clip1.set_position(lambda t: (0, int(t * h / transition_duration)))
-            clip2 = clip2.set_position(lambda t: (0, int((t * h / transition_duration) - h)))
-
-        composite_clip = CompositeVideoClip([clip1, clip2.set_start(clip1.duration - transition_duration)]).set_duration(clip1.duration + transition_duration)
-        slide_clips.append(composite_clip)
-
-    return concatenate_videoclips([slide_clips[0]] + [clip.subclip(transition_duration) for clip in slide_clips[1:]])
-
-
-
-
-def apply_transition(transition_type, clips, transition_duration):
-    if transition_type == 'crossfade':
-        return crossfade_transition(clips, transition_duration)
-    elif transition_type == 'slide':
-        return slide_transition(clips, transition_duration)
-    else:
-        raise ValueError("Invalid transition type")
-
-def convert_to_seconds(timestamp):
+def convert_timestamp_to_seconds(timestamp):
     parts = timestamp.split(':')
     if len(parts) == 1:
         return int(parts[0])
@@ -78,11 +39,11 @@ def convert_to_seconds(timestamp):
         minutes, seconds = map(int, parts)
         return minutes * 60 + seconds
 
-def extract_timestamps_and_poem_lines(file_path):
+def extract_timestamps_and_poem_lines(lines_file):
     timestamps = []
     poem_lines = []
     
-    with open(file_path, 'r') as file:
+    with open(lines_file, 'r') as file:
         for line in file.readlines():
             line = line.strip()
             if '\t' in line:
@@ -101,18 +62,17 @@ def extract_timestamps_and_poem_lines(file_path):
 ##
 # create_video
 # Creates a video from a list of image files and an audio file
-# @param mp3_file: The path to the MP3 file
+# @param audio_file: The path to the audio file
 # @param images_folder: The path to the folder containing the images
 # @param output_file: The path to the output video file
-# @param transition_type: The type of transition to use. Choose either 'crossfade' or 'interpolation'
-# @param transition_duration: The duration of the transition in seconds
 ##
-def create_video(mp3_file, images_folder, output_file, transition_type='crossfade', transition_duration=1):
+def create_video(audio_file, output_file, images_folder):
 
-    audio = AudioFileClip(mp3_file)
+    transition_duration = 1
+    audio = AudioFileClip(audio_file)
     image_files = sorted([os.path.join(images_folder, f) for f in os.listdir(images_folder) if f.endswith('.jpg') or f.endswith('.png')])
-    timestamps, poem_lines = extract_timestamps_and_poem_lines(file_path)
-    seconds_array = [convert_to_seconds(ts) for ts in timestamps]
+    timestamps, poem_lines = extract_timestamps_and_poem_lines(lines_file)
+    seconds_array = [convert_timestamp_to_seconds(ts) for ts in timestamps]
     clips = []
 
     for idx, image_file in enumerate(image_files):
@@ -123,15 +83,10 @@ def create_video(mp3_file, images_folder, output_file, transition_type='crossfad
 
         img = img.set_duration(end_time - start_time).set_start(start_time)
 
-        # if idx < len(poem_lines):
-        #     text = TextClip(poem_lines[idx], fontsize=24, color='white', bg_color='black', size=img.size, print_cmd=False)
-        #     img = CompositeVideoClip([img, text])
-
         clips.append(img)
         print(f"Clip {idx}: start_time = {start_time}, end_time = {end_time}, duration = {end_time - start_time}")
 
-
-    video = apply_transition(transition_type, clips, transition_duration)
+    video = crossfade_transition(clips, transition_duration)
     video = video.set_fps(fps).set_audio(audio)
     video.write_videofile(output_file, codec='libx264')
 
@@ -139,4 +94,4 @@ def create_video(mp3_file, images_folder, output_file, transition_type='crossfad
 
 
 if __name__ == '__main__':
-    create_video(mp3_file, images_folder, output_file, transition_type='crossfade')
+    create_video(audio_file, output_file, images_folder)
