@@ -99,7 +99,7 @@ def create_video(audio_file, output_file, images_folder, lines_file, fps):
         lines_file (str): The path to the text file containing timestamps and poem lines.
         fps (int): The frame rate of the output video.
     """
-    transition_duration = 1
+    transition_duration = 2.5
     audio = AudioFileClip(audio_file)
     image_files = sorted([os.path.join(images_folder, f) for f in os.listdir(images_folder) if f.endswith('.jpg') or f.endswith('.png')])
     timestamps, poem_lines = extract_timestamps_and_poem_lines(lines_file)
@@ -128,7 +128,7 @@ def main():
     parser.add_argument('--images_folder', type=str, required=True, help='The path to the folder containing the images.')
     parser.add_argument('--audio_file', type=str, required=True, help='The path to the audio file.')
     parser.add_argument('--lines_file', type=str, required=True, help='The path to the text file containing timestamps and poem lines.')
-    parser.add_argument('--fps', type=int, default=12, help='The frame rate of the output video. Defaults to 12 fps.')
+    parser.add_argument('--fps', type=int, default=24, help='The frame rate of the output video. Defaults to 12 fps.')
 
     args = parser.parse_args()
 

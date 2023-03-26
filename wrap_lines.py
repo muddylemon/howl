@@ -1,7 +1,6 @@
 import sys
 import os
 import re
-import argparse
 
 def wrap_lines(prefix, suffix, input_file, output_file=None):
     if output_file is None:
@@ -16,14 +15,15 @@ def wrap_lines(prefix, suffix, input_file, output_file=None):
 
     print(f"Output written to {output_file}")
 
-
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Wrap lines with a prefix and suffix.")
-    parser.add_argument("prefix", help="The prefix to add at the beginning of each line.")
-    parser.add_argument("suffix", help="The suffix to add at the end of each line.")
-    parser.add_argument("input_file", help="Path to the input file.")
-    parser.add_argument("--output_file", default=None, help="Path to the output file. (optional)")
+    print("Please provide the following information:")
 
-    args = parser.parse_args()
+    prefix = input("Enter the prefix: ")
+    suffix = input("Enter the suffix: ")
+    input_file = input("Enter the path to the input file: ")
+    output_file = input("Enter the path to the output file (press enter to use default): ")
 
-    wrap_lines(args.prefix, args.suffix, args.input_file, args.output_file)
+    if not output_file.strip():
+        output_file = None
+
+    wrap_lines(prefix, suffix, input_file, output_file)
