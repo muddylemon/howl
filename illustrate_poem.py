@@ -10,25 +10,6 @@ from moviepy.video.compositing.concatenate import concatenate_videoclips
 from moviepy.video.fx.resize import resize
 from scipy.interpolate import interp2d
 
-
-def write_text_on_clip(clip, text, position, font_scale=1, font_thickness=2, font_color=(255, 255, 255)):
-    """Write text on a video clip at the specified position.
-
-    Args:
-        clip (VideoClip): The video clip on which the text will be written.
-        text (str): The text to be written on the clip.
-        position (tuple): The (x, y) position where the text will be placed.
-        font_scale (float, optional): The font scale factor. Defaults to 1.
-        font_thickness (int, optional): The font thickness. Defaults to 2.
-        font_color (tuple, optional): The font color in (B, G, R) format. Defaults to (255, 255, 255).
-
-    Yields:
-        img (numpy.ndarray): The frame of the video clip with the text.
-    """
-    for frame in clip.iter_frames():
-        img = cv2.putText(frame, text, position, cv2.FONT_HERSHEY_SIMPLEX, font_scale, font_color, font_thickness, cv2.LINE_AA)
-        yield img
-
 def crossfade_transition(clips, transition_duration):
     """Create crossfade transitions between video clips.
 
